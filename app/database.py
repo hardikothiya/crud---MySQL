@@ -6,8 +6,8 @@ SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:hardik991322@localhost:33
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
+    query_cache_size=1200,
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
-

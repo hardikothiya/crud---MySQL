@@ -1,11 +1,9 @@
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import models, schemas, config
 
+cache_dict = {}
 
-# def get_user_by_username(db: Session, username: str):
-#     db_user = db.query(models.UserInfo).filter(models.UserInfo.username == username).all()
-#     return db_user
 
 def get_user_by_username(db: Session, username: str):
     db_user = db.query(models.UserInfo).filter(models.UserInfo.username == username).all()
@@ -22,7 +20,15 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def all_user(db: Session):
-    return db.query(models.UserInfo).all()
+    if len(cache_dict) == 0:
+        print("=====Data from Server=========")
+
+        cache_dict[all_user] = db.query(models.UserInfo).all()
+
+        return cache_dict[all_user]
+    else:
+        print("=====Cached Data======")
+        return cache_dict[all_user]
 
 
 def delete_user(db: Session, username: str):
