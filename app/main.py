@@ -39,7 +39,13 @@ def show_username(user_name: str, db: Session = Depends(get_db)):
 @app.delete("/user/{user_name}")
 def delete_user(user_name: str, db: Session = Depends(get_db)):
     db_user = crud.delete_user(db, username=user_name)
-    return {"User deleted" }
+    return {"User deleted"}
+
+
+@app.post("/user/{user_name}/{full_name}")
+def update_user(user_name: str, full_name: str, db: Session = Depends(get_db)):
+    db_user = crud.update_user(db, username=user_name, full_name=full_name)
+    return db_user
 
 
 if __name__ == "__main__":

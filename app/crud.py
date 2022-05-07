@@ -21,3 +21,11 @@ def delete_user(db: Session, username: str):
     db.delete(db_user)
     db.commit()
     return db_user
+
+
+def update_user(db: Session, username: str, full_name: str):
+    db_user = db.query(models.UserInfo).filter(models.UserInfo.username == username).first()
+    db_user.fullname = full_name
+    db.commit()
+    db.refresh(db_user)
+    return db_user
