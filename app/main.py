@@ -22,7 +22,7 @@ def get_db():
         db.close()
 
 
-@app.post("/user", response_model=schemas.UserInfo)
+@app.post("/user", response_model=schemas.UserInfo, tags=['User'])
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
@@ -30,22 +30,37 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 
-@app.get("/username/{user_name}")
+@app.get("/username/{user_name}", tags=['User'])
 def show_username(user_name: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user_name)
-    return db_user
+    return {"name": db_user[0].username,
+            "fullname": db_user[0].fullname,
+            "id": db_user[0].id
+            }
 
 
-@app.delete("/user/{user_name}")
+@app.get("/all", tags=['User'])
+def show_username(db: Session = Depends(get_db)):
+    db_user = crud.all_user(db)
+    return {"name": db_user[0].username,
+            "fullname": db_user[0].fullname,
+            "id": db_user[0].id
+            }
+
+
+@app.delete("/user/{user_name}", tags=['User'])
 def delete_user(user_name: str, db: Session = Depends(get_db)):
     db_user = crud.delete_user(db, username=user_name)
-    return {"User deleted"}
+    return {"User deleted successfully!! "}
 
 
-@app.post("/user/{user_name}/{full_name}")
+@app.post("/user/", tags=['User'])
 def update_user(user_name: str, full_name: str, db: Session = Depends(get_db)):
     db_user = crud.update_user(db, username=user_name, full_name=full_name)
-    return db_user
+    return {"name": db_user[0].username,
+            "fullname": db_user[0].fullname,
+            "id": db_user[0].id
+            }
 
 
 if __name__ == "__main__":
