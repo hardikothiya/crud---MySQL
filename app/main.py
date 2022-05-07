@@ -1,5 +1,3 @@
-from typing import List
-
 import uvicorn
 from sqlalchemy.orm import Session
 from fastapi import Depends, FastAPI, HTTPException
@@ -40,8 +38,8 @@ def show_username(user_name: str, db: Session = Depends(get_db)):
 
 @app.delete("/user/{user_name}")
 def delete_user(user_name: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=user_name)
-    return db_user
+    db_user = crud.delete_user(db, username=user_name)
+    return {"User deleted" }
 
 
 if __name__ == "__main__":

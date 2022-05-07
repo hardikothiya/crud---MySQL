@@ -16,7 +16,8 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-
-
-
-
+def delete_user(db: Session, username: str):
+    db_user = db.query(models.UserInfo).filter(models.UserInfo.username == username).first()
+    db.delete(db_user)
+    db.commit()
+    return db_user
