@@ -1,10 +1,13 @@
+import time
+
 import uvicorn
-from sqlalchemy.orm import Session
 from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.orm import Session
+from pymemcache.client import base
 
-
-from app import models, schemas, crud
-from app.database import engine, SessionLocal
+import json
+from . import models, schemas, crud
+from .database import engine, SessionLocal
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -23,6 +26,12 @@ def get_db():
         db.close()
 
 
+@app.on_event("startup")
+def take_lock():
+    global db
+    db = SessionLocal()
+
+
 @app.post("/user", response_model=schemas.UserInfo, tags=['User'])
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
@@ -31,19 +40,42 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 
+@app.get("/user/id", tags=['User'])
+def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_id(db, user_id=user_id)
+    return db_user
+
+
+# ############################################################################################################################
+
 @app.get("/username/{user_name}", tags=['User'])
 def show_username(user_name: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=user_name)
+    client = base.Client(('127.0.0.1', 11211))
+    print("===========cached data=========")
+    a = client.get(user_name)
+    s = a.decode("utf-8").replace("'", '"')
+    z = "[" + s + "]"
+    db_user = json.loads(z)
 
-    return {"name": db_user[0].username,
-            "fullname": db_user[0].fullname,
-            "id": db_user[0].id
-            }
+    if a is None:
+        print("===========Query from server=========")
+        db_user = crud.get_user_by_username(db, username=user_name)
+        client.set(db_user[0].username, {"username": db_user[0].username,
+                                         "fullname": db_user[0].fullname,
+                                         "id": db_user[0].id}, expire=86400)
 
+    return db_user
+
+
+########################################################################################################################
 
 @app.get("/all", tags=['User'])
 def show_username(db: Session = Depends(get_db)):
+    start_time = time.time()
+
     db_user = crud.all_user(db)
+    print("--- %s seconds ---" % (time.time() - start_time))
+
     return db_user
 
 
@@ -60,4 +92,4 @@ def update_user(user_name: str, full_name: str, db: Session = Depends(get_db)):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=3306)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

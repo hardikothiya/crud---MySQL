@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:hardik991322@localhost:3306/restapi"
 
+
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     query_cache_size=1200,
