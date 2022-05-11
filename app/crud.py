@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 import aioredis
 
-
 from . import models, schemas, config
 
 import time
@@ -9,6 +8,7 @@ import time
 
 def get_user_by_username(db: Session, username: str):
     db_user = db.query(models.UserInfo).filter(models.UserInfo.username == username).all()
+
     return db_user
 
 
@@ -28,31 +28,10 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-# def all_user(db: Session):
-#     start_time = time.time()
-#
-#     if len(config.cache_dict) == 0:
-#         print("=====Data from Server=========")
-#
-#         config.cache_dict[all_user] = db.query(models.UserInfo).all()
-#         print("--- %s seconds ---" % (time.time() - start_time))
-#
-#         return config.cache_dict[all_user]
-#
-#     else:
-#         start_time = time.time()
-#
-#         print("=====Cached Data======")
-#         print("--- %s seconds ---" % (time.time() - start_time))
-#
-#         return config.cache_dict[all_user]
-
-
 def all_user(db: Session):
     start_time = time.time()
 
     db_user = db.query(models.UserInfo).all()
-    print("--- %s seconds ---" % (time.time() - start_time))
 
     return db_user
 

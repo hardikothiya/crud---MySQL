@@ -52,17 +52,29 @@ def get_user_by_id(user_id: int, db: Session = Depends(get_db)):
 def show_username(user_name: str, db: Session = Depends(get_db)):
     client = base.Client(('127.0.0.1', 11211))
     print("===========cached data=========")
-    a = client.get(user_name)
-    s = a.decode("utf-8").replace("'", '"')
-    z = "[" + s + "]"
-    db_user = json.loads(z)
+    db_user = client.get(user_name)
+    if db_user is not None:
+        s = db_user.decode("utf-8").replace("'", '"')
+        z = "[" + s + "]"
+        db_user = json.loads(z)
 
-    if a is None:
+    if db_user is None:
         print("===========Query from server=========")
         db_user = crud.get_user_by_username(db, username=user_name)
-        client.set(db_user[0].username, {"username": db_user[0].username,
-                                         "fullname": db_user[0].fullname,
-                                         "id": db_user[0].id}, expire=86400)
+        try:
+            client.set(db_user[0].username, {"username": db_user[0].username,
+                                             "fullname": db_user[0].fullname,
+                                             "id": db_user[0].id}, expire=86400)
+            db_user = client.get(user_name)
+            if db_user is not None:
+                s = db_user.decode("utf-8").replace("'", '"')
+                z = "[" + s + "]"
+                db_user = json.loads(z)
+            return db_user
+
+        except Exception as e:
+            print(e)
+            return str(e)
 
     return db_user
 
@@ -71,17 +83,23 @@ def show_username(user_name: str, db: Session = Depends(get_db)):
 
 @app.get("/all", tags=['User'])
 def show_username(db: Session = Depends(get_db)):
-    start_time = time.time()
-
-    db_user = crud.all_user(db)
-    print("--- %s seconds ---" % (time.time() - start_time))
-
-    return db_user
+    client = base.Client(('127.0.0.1', 11211))
+    # db_users= client.get("all")
+    db_users = crud.all_user(db)
+    print("===========cached data=========")
+    # if db_users is  None:
+    #     print("===========Query from server=========")
+    #     db_users = crud.all_user(db)
+    #     client.set("all", db_users, expire=86400)
+    return db_users
 
 
 @app.delete("/user/{user_name}", tags=['User'])
 def delete_user(user_name: str, db: Session = Depends(get_db)):
+    client = base.Client(('127.0.0.1', 11211))
+    client.delete(user_name)
     db_user = crud.delete_user(db, username=user_name)
+
     return {"User deleted successfully!! "}
 
 
