@@ -109,15 +109,15 @@ def show_username(user_name: str, db: Session = Depends(get_db)):
     return db_user
 
 
+##############################################################################################
+
+
 ########################################################################################################################
 
 @app.get("/all", tags=['User'])
 def show_username(db: Session = Depends(get_db)):
-    client = base.Client(('127.0.0.1', 11211))
-    db_users = crud.all_user(db)
-    print("===========cached data=========")
-
-    return db_users
+    db_user = crud.all_user(db)
+    return db_user
 
 
 @app.delete("/user/{user_name}", tags=['User'])

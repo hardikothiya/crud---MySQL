@@ -13,9 +13,7 @@ def get_user_by_username(db: Session, username: str):
 
 
 def get_user_by_id(db: Session, user_id: int):
-    start_time = time.time()
     db_user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
-    print("--- %s seconds ---" % (time.time() - start_time))
     return db_user
 
 
@@ -29,8 +27,6 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def all_user(db: Session):
-    start_time = time.time()
-
     db_user = db.query(models.UserInfo).all()
 
     return db_user
